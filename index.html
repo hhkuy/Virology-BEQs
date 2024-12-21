@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Quiz Application</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* التنسيقات تبقى كما هي */
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+        }
+
+        .quiz-container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 80%;
+            max-width: 700px;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #343a40;
+            font-size: 32px;
+            margin-bottom: 30px;
+            font-weight: 700;
+        }
+
+        .question {
+            font-size: 18px;
+            margin: 20px 0 10px 0;
+            color: #495057;
+        }
+
+        .question-number {
+            color: #000000;
+            font-weight: bold;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            background-color: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            transition: background-color 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .option:hover {
+            background-color: #e9ecef;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .option input {
+            margin-right: 15px;
+            cursor: pointer;
+        }
+
+        .option label {
+            flex-grow: 1;
+            cursor: pointer;
+        }
+
+        .correct {
+            background-color: #28a745 !important;
+            color: white;
+        }
+
+        .wrong {
+            background-color: #dc3545 !important;
+            color: white;
+        }
+
+        .unanswered {
+            background-color: #ffc107 !important;
+            color: black;
+        }
+
+        .correct-answer {
+            background-color: #28a745 !important;
+            color: white;
+            border: 2px solid #28a745;
+        }
+
+        button {
+            padding: 12px;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-top: 15px;
+            width: 100%;
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+
+        #shuffle-questions {
+            background-color: #007bff;
+            color: white;
+        }
+
+        #shuffle-questions:hover {
+            background-color: #0056b3;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #shuffle-options {
+            background-color: #007bff;
+            color: white;
+        }
+
+        #shuffle-options:hover {
+            background-color: #0056b3;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #show-result {
+            background-color: #28a745;
+            color: white;
+        }
+
+        #show-result:hover {
+            background-color: #218838;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #reset-quiz {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        #reset-quiz:hover {
+            background-color: #c82333;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #result {
+            font-size: 18px;
+            margin-top: 20px;
+            text-align: center;
+            color: #343a40;
+        }
+
+        .floating-button-container {
+            position: fixed !important;
+            top: 80px !important;
+            right: 20px !important;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 9999 !important;
+        }
+
+        .floating-button {
+            background-color: #007bff;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
+        }
+
+        .floating-button:hover {
+            background-color: #0056b3;
+        }
+
+        /* تنسيقات لمربع الحوار المخصص */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 200;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .modal-button {
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .modal-button.yes {
+            background-color: #28a745;
+            color: #fff;
+        }
+
+        .modal-button.no {
+            background-color: #dc3545;
+            color: #fff;
+        }
+
+        /* تنسيقات إضافية للأزرار الجديدة */
+        .show-answer-button, .clear-button, .shuffle-options-button {
+            padding: 8px 12px;
+            margin-top: 10px;
+            font-size: 14px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: auto;
+            margin-right: 5px;
+        }
+
+        .show-answer-button {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .show-answer-button:hover {
+            background-color: #218838;
+        }
+
+        .shuffle-options-button {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .shuffle-options-button:hover {
+            background-color: #0056b3;
+        }
+
+        .clear-button {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .clear-button:hover {
+            background-color: #c82333;
+        }
+
+        /* تنسيقات لأزرار الفلترة */
+        .filter-button {
+            padding: 12px;
+            margin: 5px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            color: white;
+        }
+
+        .filter-button.correct {
+            background-color: #28a745;
+        }
+
+        .filter-button.wrong {
+            background-color: #dc3545;
+        }
+
+        .filter-button.unanswered {
+            background-color: #ffc107;
+            color: black;
+        }
+
+        .filter-button.all {
+            background-color: #007bff;
+        }
+        
+        #jump-input {
+    width: 250px; /* عرض الحقل */
+    height: 20px; /* ارتفاع الحقل */
+    font-size: 16px; /* حجم النص داخل الحقل */
+    padding: 10px; /* المسافة الداخلية بين النص وحدود الحقل */
+    border-radius: 8px; /* حواف مستديرة */
+    border: 1px solid #ced4da; /* لون الحدود */
+}
+
+#jump-input:focus {
+    outline: none; /* إزالة الحدود الزرقاء الافتراضية */
+    border-color: #80bdff; /* تغيير لون الحدود عند التفاعل */
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* إضافة تأثير ظل عند التفاعل */
+}
+
+        #search-results {
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 0;
+            list-style-type: none;
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        #search-results ul {
+            padding: 0;
+            list-style-type: none;
+            margin: 0;
+        }
+
+        #search-results li {
+            margin: 10px 0;
+        }
+
+        #search-results li button {
+            width: 100%;
+            text-align: left;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #f8f9fa;
+            transition: background-color 0.3s;
+        }
+
+        #search-results li button:hover {
+            background-color: #e9ecef;
+        }
+
+        #search-results li button mark {
+            background-color: yellow;
+        }
+
+        /* تنسيقات مخصصة للفلترة بالفئات */
+        #filter-btn {
+            background-color: #007bff;
+            color: #fff;
+            margin-bottom: 20px;
+        }
+
+        #filter-btn:hover {
+            background-color: #0056b3;
+        }
+
+        #category-modal .category-modal-buttons {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        #category-modal .category-modal-buttons button {
+            margin: 0 5px;
+        }
+
+        #category-modal select {
+            width: 80%;
+            max-width: 300px;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ced4da;
+            background: #fff;
+            display: block;
+            margin: 0 auto;
+        }
+
+        #category-modal select:focus {
+            outline: none;
+            border-color: #80bdff;
+            box-shadow: 0 0 3px rgba(0,123,255,.5);
+        }
+
+        #select-all-categories-btn {
+            padding:8px; 
+            font-size:14px; 
+            border-radius:5px; 
+            border:none; 
+            background-color:#007bff; 
+            color:#fff; 
+            cursor:pointer;
+        }
+        #select-all-categories-btn:hover {
+            background-color: #0056b3;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="quiz-container" id="quiz-container">
+        <h1>Virology BEQs</h1>
+        <button id="filter-btn" onclick="openCategoryModal()">Filter Categories</button>
+        <p>Total Questions: <strong id="total-questions"></strong></p>
+        <form id="quiz-form">
+            <!-- الأسئلة ستُحقن هنا -->
+        </form>
+        <button id="shuffle-questions" onclick="shuffleQuestions()">Shuffle Questions</button>
+        <button id="shuffle-options" onclick="shuffleAllOptions()">Shuffle Options</button>
+        <button id="show-result" onclick="showResult()">Show Result</button>
+        <button id="reset-quiz" onclick="resetQuiz()">Reset Quiz</button>
+        <div id="result"></div>
+    </div>
+    
+    <!-- زر التمرير العائم -->
+    <div class="floating-button-container">
+        <button id="scroll-button" class="floating-button" onclick="handleScrollButton()" title="Scroll between answered and bottom">↓</button>
+        <button id="jump-button" class="floating-button" onclick="openJumpModal()" title="Search Questions">🔍</button>
+    </div>
+
+    <!-- مربع الحوار لإعادة الضبط -->
+    <div id="reset-modal" class="modal">
+        <div class="modal-content">
+            <p>Are you sure you want to reset the quiz?</p>
+            <button class="modal-button yes" onclick="confirmResetQuiz()">Yes</button>
+            <button class="modal-button no" onclick="closeResetModal()">No</button>
+        </div>
+    </div>
+
+    <!-- مربع حوار البحث -->
+    <div id="jump-modal" class="modal">
+        <div class="modal-content">
+            <p>Enter question number or search term:</p>
+            <input type="text" id="jump-input" placeholder="keyword">
+            <button class="modal-button" onclick="jumpToQuestion()">Go</button>
+            <button class="modal-button no" onclick="closeJumpModal()">Close</button>
+            <div id="search-results"></div>
+        </div>
+    </div>
+
+    <!-- مربع حوار اختيار الفئات -->
+    <div id="category-modal" class="modal">
+        <div class="modal-content">
+            <p>Select Categories:</p>
+            <select id="category-filter" multiple></select>
+            <div class="category-modal-buttons">
+                <button id="select-all-categories-btn">Select/Unselect All</button>
+                <button class="modal-button yes" onclick="applyCategoryFilter()">OK</button>
+                <button class="modal-button no" onclick="closeCategoryModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+let quizData = [
+    { question: "<span style='color: darkred;'>February 2013 - Question 73</span> Which of the following viruses can agglutinate the red blood cell?", options: ["Cytomegalovirus", "Respiratory syncytial virus", "Measles", "Polio"], answer: 2 },
+
+    { question: "<span style='color: darkred;'>February 2013 - Question 74</span> Which of the following viruses is sensitive to ether?", options: ["Epstein-Barr", "Polyoma", "Adeno", "Polio"], answer: 0 },
+
+    { question: "<span style='color: darkred;'>February 2013 - Question 75</span> Which of the following viruses is the agent of Herpangina?", options: ["Coxsackievirus", "Adenovirus", "Echovirus", "Enterovirus 71"], answer: 0 },
+
+    { question: "<span style='color: darkred;'>February 2013 - Question 76</span> Which of the following statements about the Molluscum contagiosum virus is true?", options: ["Will multiply in the cell nucleus", "Weakened antigenesis", "Transmitted through respiratory tract", "Proliferation in cell culture"], answer: 3 },
+    
+    { question: "<span style='color: darkred;'>February 2014 - Question 141</span> Which of the following viruses can be a cause of hepatocellular carcinoma?", options: ["HGV", "HAV", "HCV", "HEV"], answer: 2 },
+
+    { question: "<span style='color: darkred;'>February 2014 - Question 142</span> Which form of hepatitis virus is resistant to acidic conditions?", options: ["A", "B", "C", "D"], answer: 0 },
+
+    { question: "<span style='color: darkred;'>February 2014 - Question 143</span> Which virus causes congenital abnormalities in fetus?", options: ["Polio", "Rubella", "Papilloma", "Adenovirus"], answer: 1 },
+
+    { question: "<span style='color: darkred;'>February 2014 - Question 144</span> Which of the following viruses is hidden in neural cells?", options: ["Mumps", "Cytomegalovirus", "Herpes simplex", "Epstein-Barr"], answer: 2 },
+
+    { question: "<span style='color: darkred;'>February 2014 - Question 145</span> Which of the following viruses is the cause of the 5th disease or erythema infectiosum?", options: ["Parvovirus", "Rubella", "Measles", "Mumps"], answer: 0 },
+    
+    { question: "<span style='color: darkred;'>February (2) 2014 - Question 141</span> Which of the following viruses can cause Hepatocellular Carcinoma?", options: ["Hepatitis G (HGV)", "Hepatitis A (HAV)", "Hepatitis C (HCV)", "Hepatitis E (HEV)"], answer: 2 },
+
+    { question: "<span style='color: darkred;'>February (2) 2014 - Question 142</span> Which of the following viruses causes Pleurodynia?", options: ["Coronavirus", "Parvovirus B19", "Coxsackievirus B", "Adenovirus"], answer: 2 },
+
+    { question: "<span style='color: darkred;'>February (2) 2014 - Question 143</span> The genome of which of the following viruses is diploid?", options: ["Vaccinia virus", "HIV", "Reovirus", "Adenovirus"], answer: 1 },
+
+    { question: "<span style='color: darkred;'>February (2) 2014 - Question 144</span> Which of the following antiviral drugs is used to treat influenza?", options: ["Zidovudine", "Acyclovir", "Lamivudine", "Oseltamivir"], answer: 3 },
+
+    { question: "<span style='color: darkred;'>February (2) 2014 - Question 145</span> Which of the following viruses has oncogenic potential?", options: ["Parvovirus B19", "Human papillomavirus type 16", "Influenza virus type B", "Type 3 Influenza virus"], answer: 1 },
+    
+    { question: "<span style='color: darkred;'>September 2014 - Question 82</span> Which of the following viruses have the ability to tumor generation?", options: ["Parainfluenza", "Rota", "Papilloma", "Polio"], answer: 2 },
+
+    { question: "<span style='color: darkred;'>September 2014 - Question 83</span> Which antiviral drug with anti-neurominidase action is used to treat influenza?", options: ["Oseltamivir", "Abacavir", "Lamivudine", "Ganciclovir"], answer: 0 },
+
+    { question: "<span style='color: darkred;'>September 2014 - Question 84</span> Viruses of which viral family have the ability to cause latent infection?", options: ["Poxvirus", "Filoviruses", "Orthomyxovirus", "Herpesvirus"], answer: 3 },
+
+    { question: "<span style='color: darkred;'>September 2014 - Question 85</span> Which of the following viruses in humans cause chronic hepatitis and liver cancer respectively?", options: ["HCV, HBV", "HAV, HEV", "HCV, HAV", "HBV, HEV"], answer: 0 },
+
+    { question: "<span style='color: darkred;'>September 2014 - Question 86</span> Which of the viral families is the cause of Ebola?", options: ["Paramyxoviridae", "Rhabdoviridae", "Filoviridae", "Adenoviridae"], answer: 2 },
+    
+    { question: "<span style='color: darkred;'>March 2015 - Question 103</span> Which of the following viruses cause fetal malformation?", options: ["CMV", "HAV", "Pox", "Influenza Cs"], answer: 0 },
+
+    { question: "<span style='color: darkred;'>March 2015 - Question 104</span> Which of the following indicators alone indicates immunity against hepatitis B?", options: ["Anti‐HBC(IgM)", "Anti‐HBC(IgG)", "Anti‐HBe(IgG)", "Anti‐HBS(IgG)"], answer: 3 },
+
+    { question: "<span style='color: darkred;'>March 2015 - Question 105</span> Which virus is the main cause of gastroenteritis (diarrhea) in children between 1 and 2 years old?", options: ["Arenavirus", "Rotavirus", "Varicella zoster", "Bunyavirus"], answer: 1 },
+
+    { question: "<span style='color: darkred;'>March 2015 - Question 106</span> Which of the following receptors plays a role in infection with HIV virus?", options: ["CD2", "CD6", "CD4", "CD8"], answer: 2 },
+
+    { question: "<span style='color: darkred;'>March 2015 - Question 107</span> Which of the following viruses are not transmitted from the mouth and usually are not chronic?", options: ["Hepatitis A and E", "Hepatitis C and A", "Hepatitis B and A", "Hepatitis B and C"], answer: 0 },
+        
+    { question: "<span style='color: darkred;'>February 2016 - Question 141</span> Which of the following viruses can be a cause of hepatocellular carcinoma?", options: ["HGV", "HAV", "HCV", "HEV"], answer: 2 },
+
+    { question: "<span style='color: darkred;'>February 2016 - Question 142</span> Which form of hepatitis virus is resistant to acidic conditions?", options: ["A", "B", "C", "D"], answer: 0 },
+
+    { question: "<span style='color: darkred;'>February 2016 - Question 143</span> Which virus causes congenital abnormalities in fetuses?", options: ["Polio", "Rubella", "Papilloma", "Adenovirus"], answer: 1 },
+
+    { question: "<span style='color: darkred;'>February 2016 - Question 144</span> Which of the following viruses is hidden in neural cells?", options: ["Mumps", "Cytomegalovirus", "Herpes simplex", "Epstein-Barr"], answer: 2 },
+
+    { question: "<span style='color: darkred;'>February 2016 - Question 145</span> Which of the following viruses is the cause of the 5th disease or erythema infectiosum?", options: ["Parvovirus", "Rubella", "Measles", "Mumps"], answer: 0 },
+    
+    { question: "<span style='color: darkred;'>February (21) 2016 - Question 103</span> Which virus causes Acute Keratocongenctiutis?", options: ["Adeno", "Cytomegalo", "Epstein-barr", "Corona"], answer: 0 },
+
+    { question: "<span style='color: darkred;'>February (21) 2016 - Question 104</span> Which of the following viruses stays hidden in neural ganglia after primary infection?", options: ["Epstein-barr", "Adeno", "Herpes simplex", "Parvo"], answer: 2 },
+
+    { question: "<span style='color: darkred;'>February (21) 2016 - Question 105</span> Which of the following markers in Hepatitis B infection is traceable earlier than the others?", options: ["HBs Ab", "HBs Ag", "HBe Ag", "HBc Ag"], answer: 1 },
+
+    { question: "<span style='color: darkred;'>February (21) 2016 - Question 106</span> Which protein of influenza viruses has a role in release of viruses from the cells?", options: ["M2 protein", "Hemagglutinin", "NP", "Neuraminidase"], answer: 3 },
+
+    { question: "<span style='color: darkred;'>February (21) 2016 - Question 107</span> Which of the following viruses can be a cause of hepatocellular carcinoma?", options: ["HGV", "HAV", "HCV", "HEV"], answer: 2 },
+    
+    { question: "<span style='color: darkred;'>February (22) 2016 - Question 103</span> Which virus is carcinogenic?", options: ["EBV", "CMV", "HSV", "HHV-6"], answer: 0 },
+    
+    { question: "<span style='color: darkred;'>February (22) 2016 - Question 104</span> What is called moving parts of RNA between influenza viruses?", options: ["Recombination", "Reassortment", "Complementation", "Point mutation"], answer: 1 },
+    
+    { question: "<span style='color: darkred;'>February (22) 2016 - Question 105</span> Which of the following options is the HIV helper receptor?", options: ["ICAM1", "CD4", "CD8", "CCR5"], answer: 1 },
+    
+    { question: "<span style='color: darkred;'>February (22) 2016 - Question 106</span> Which virus is the most important cause of children's gastroenteritis?", options: ["Adenovirus", "Astrovirus", "Rotavirus", "Rhinovirus"], answer: 2 },
+    
+    { question: "<span style='color: darkred;'>February (22) 2016 - Question 107</span> Which of the following viruses can cause Hepatocellular carcinoma?", options: ["Hepatitis G (HGV)", "Hepatitis A (HAV)", "Hepatitis C (HCV)", "Hepatitis E (HEV)"], answer: 2 },
+    
+    { question: "<span style='color: darkred;'>August 2016 - Question 92</span> Which of the following viruses is involved in the creation of Paralysis?", options: ["Mumps virus", "Coxsackie virus", "Herpes virus", "Rabies virus"], answer: 1 },
+
+    { question: "<span style='color: darkred;'>August 2016 - Question 93</span> Which of the following antiviral drugs inhibits the function of the enzyme Integrase in the HIV virus?", options: ["Maraviroc", "Enfuvirtide", "Fuzeon", "Raltegravir"], answer: 3 },
+
+    { question: "<span style='color: darkred;'>August 2016 - Question 94</span> Which of the hepatitis-developing viruses has the single-stranded RNA and HBs-Ag in its cover?", options: ["HBV", "HEV", "HDV", "HCV"], answer: 2 },
+
+    { question: "<span style='color: darkred;'>August 2016 - Question 95</span> In which viral family does Zika virus get categorized and what’s its transporter?", options: ["Filoviridae, Aedes", "Flaviviridae, Anopheles", "Bunyaviridae, Anopheles", "Flaviviridae, Aedes"], answer: 3 },
+    
+    { question: "<span style='color: darkred;'>August (22) 2016 - Question 92</span> Which one is true about rabies?", options: ["Negri body is not seen in bats.", "There are clinical symptoms only in humans.", "It spreads through the viremia to the brain.", "Vaccination is made from several dead virus serotypes."], answer: 3 },
+
+    { question: "<span style='color: darkred;'>August (22) 2016 - Question 93</span> Which virus is the agent for infectious mononucleosis with negative heterophile antibody test?", options: ["Cytomegalovirus", "Epstein Barr", "Varicella zoster", "Herpes Type 8"], answer: 0 },
+
+    { question: "<span style='color: darkred;'>August (22) 2016 - Question 94</span> Aspirin intake followed by infection of which of the following viruses causes Reye syndrome?", options: ["Parainfluenza", "Measles", "Influenza B", "Polio"], answer: 2 },
+
+    { question: "<span style='color: darkred;'>August (22) 2016 - Question 95</span> Which of the following is a way to transmit Hepatitis A virus?", options: ["Consuming cooked meat", "Contact infected syringe", "Sexual contact with the infected person", "Changing diapers of affected children"], answer: 3 },
+    
+    { question: "<span style='color: darkred;'>August (23) 2016 - Question 92</span> Which of the following viruses has DNA as genome?", options: ["Polio", "Measles", "Rubella", "Parvovirus"], answer: 3 },
+
+    { question: "<span style='color: darkred;'>August (23) 2016 - Question 93</span> Vaccination against which of the hepatitis viruses causes immunity against hepatitis D?", options: ["HAV", "HCV", "HBV", "HEV"], answer: 2 },
+
+    { question: "<span style='color: darkred;'>August (23) 2016 - Question 94</span> Which of the following drugs is used in treating influenza?", options: ["Aciclovir", "Foscarnet", "Vidarabine", "Oseltamivir"], answer: 3 },
+
+    { question: "<span style='color: darkred;'>August (23) 2016 - Question 95</span> Which of the following viruses causes congenital abnormality?", options: ["Measles", "Hepatitis A", "Mumps", "Cytomegalovirus"], answer: 3 },
+    
+    { question: "<span style='color: darkred;'>August (25) 2016 - Question 126</span> Which of the following viruses causes cold sores?", options: ["HTLV-1", "HSV-2", "HCV", "HSV-1"], answer: 3 },
+
+    { question: "<span style='color: darkred;'>August (25) 2016 - Question 127</span> Hepatitis C comes with which of the following viruses?", options: ["HCV", "HSV-1", "HBV", "HIV"], answer: 0 },
+
+    { question: "<span style='color: darkred;'>August (25) 2016 - Question 128</span> Which one is the specified receptor on the surface of lymphocyte T for HIV?", options: ["Heparan sulfate", "Sialic acid", "CD4", "CD46"], answer: 2 },
+
+    { question: "<span style='color: darkred;'>August (25) 2016 - Question 129</span> Which one is the major transfer way of hepatitis A?", options: ["Fecal - Oral", "Blood", "Nervous", "Lymph"], answer: 0 },
+    
+    {question: "<span style='color: darkred;'>September 2016 - Question 92</span> Which one of the molecules of influenza A virus is the cell attachment protein?", options: ["Matrix protein (M1)", "Neuraminidase (NA)", "Hemagglutinin (HA)", "Nucleoprotein (NP)"], answer: 2},
+
+    {question: "<span style='color: darkred;'>September 2016 - Question 93</span> A commercial vaccine consisting of virion subunits prepared by recombinant technology exists for:", options: ["B19", "HIV", "HHV-6", "HBV"], answer: 3},
+
+    {question: "<span style='color: darkred;'>September 2016 - Question 94</span> Which one of the following viruses is likely to establish latent infection?", options: ["Poliovirus", "Varicella-zoster virus", "Influenza virus", "Mumps virus"], answer: 1},
+
+    {question: "<span style='color: darkred;'>September 2016 - Question 95</span> Which one of the following tests is used for the diagnosis of acute hepatitis A infection?", options: ["Immunofluorescence", "IgG detection", "IgM detection", "Hemagglutination"], answer: 2},
+    
+    { question: "<span style='color: darkred;'>March 2017 - Question 92</span> MMR vaccine provides immunity against which of the following viruses?", options: ["Polio, Measles, Rabies", "Polio, Measles, Rubella", "Measles, Rubella, Rabies", "Measles, Mumps, Rubella"], answer: 3 },
+
+    { question: "<span style='color: darkred;'>March 2017 - Question 93</span> Which of the following viruses is the most important causative agent in viral gastroenteritis in young children?", options: ["Parvovirus B19", "Molluscum contagiosum virus", "Rotavirus", "Adenovirus"], answer: 2 },
+
+    { question: "<span style='color: darkred;'>March 2017 - Question 94</span> Which of the following is a nucleoside analog antiviral agent?", options: ["Azidothymidine", "Rimantadine", "Foscarnet", "Zanamivir"], answer: 0 },
+
+    { question: "<span style='color: darkred;'>March 2017 - Question 95</span> Of the viruses shown below, which one is the causative agent of Subacute Sclerosing Panencephalitis (SSPE)?", options: ["Measles virus", "Herpes Simplex virus 1 (HSV-1)", "Polio virus", "Polyoma virus"], answer: 0 },
+    
+    { question: "<span style='color: darkred;'>August 2017 - Question 108</span> Which one of the following viruses is associated with high mortality rate in fulminant hepatitis in pregnant women?", options: ["HAV", "HBV", "HDV", "HEV"], answer: 3 },
+    
+    { question: "<span style='color: darkred;'>August 2017 - Question 109</span> Which one of the following viral infections has an effect on parotid glands?", options: ["Mumps", "Infectious mononucleosis", "Measles", "Parainfluenza virus infections"], answer: 0 },
+    
+    { question: "<span style='color: darkred;'>August 2017 - Question 110</span> Which one of the following viruses is a major cause of breakbone fever?", options: ["Marburg", "CCHF", "Yellow fever", "Dengue"], answer: 3 },
+    
+    { question: "<span style='color: darkred;'>August 2017 - Question 111</span> Which one of the following organs is the main location of primary replication of echoviruses?", options: ["Central nervous system", "Gastrointestinal", "Respiratory", "Skin"], answer: 1 },
+    
+    { question: "<span style='color: darkred;'>August 2017 - Question 112</span> Which one of the following cellular receptors acts as coreceptor in the attachment of HIV?", options: ["CD4", "Integrin", "CCR5", "gp120"], answer: 2 },
+    
+    { question: "<span style='color: darkred;'>September 2019 - Question 92</span> Which one of the following viruses is the most important cause of severe gastroenteritis among infants?", options: ["Echovirus", "Cytomegalovirus", "Poliovirus", "Rotavirus"], answer: 3 },
+
+    { question: "<span style='color: darkred;'>September 2019 - Question 93</span> Which one of the following drugs is used as polymerase inhibitor for hepatitis C treatment?", options: ["Acyclovir", "Sofosbuvir", "Didanosine", "Lamivudine"], answer: 1 },
+
+    { question: "<span style='color: darkred;'>September 2019 - Question 94</span> A 36-year-old nurse is found to be both HBsAg positive and HBeAg positive. The nurse most likely:", options: ["Was previously immunized with HBV vaccine", "Has acute hepatitis B.", "Has both HBV and HEV infections.", "Has cleared a past HBV infection."], answer: 1 },
+
+    { question: "<span style='color: darkred;'>September 2019 - Question 95</span> Which of the following viruses has the subunit vaccine?", options: ["Varicella", "Rabies", "Hepatitis A", "Papilloma"], answer: 3 },
+    
+    { question: "<span style='color: darkred;'>September 2020 - Question 90</span> Which of the following influenza virus proteins is inhibited by the drug Zanamivir?", options: ["M2 (Ionic channel Protein)", "NA (Neuraminidase)", "NS1 (Non-structural protein)", "M1 (Matrix protein)"], answer: 1 },
+
+    { question: "<span style='color: darkred;'>September 2020 - Question 91</span> Which of the following options is true about Corona viruses?", options: ["They have a circular RNA genome.", "Their genome has an ambisense polarity.", "They cause disease only in human.", "They are enveloped viruses."], answer: 3 },
+
+    { question: "<span style='color: darkred;'>September 2020 - Question 92</span> Which herpes virus becomes latent in B lymphocytes?", options: ["EBV", "CMV", "VZV", "HSV-1"], answer: 0 },
+
+    { question: "<span style='color: darkred;'>September 2020 - Question 93</span> Which of the following diseases is caused by arthropods?", options: ["MERS", "Yellow fever", "SSPE", "Lassa fever"], answer: 1 },
+
+    { question: "<span style='color: darkred;'>September 2020 - Question 94</span> Which of the following diseases has a vaccine?", options: ["Hepatitis C", "AIDS", "Hepatitis E", "Mumps"], answer: 3 },
+    
+    { question: "<span style='color: darkred;'>March 2021 - Question 90</span> Which of the following viruses belongs to arboviruses?", options: ["Molluscum contagiosum", "Tanapox", "Orf", "Cowpox"], answer: 3 },
+
+    { question: "<span style='color: darkred;'>March 2021 - Question 91</span> Which of the following is true about Poliomyelitis?", options: ["It is impossible to be eradicated.", "Only children become infected.", "Immunity to one serotype potentially provides immunity for other serotypes.", "The virus is easily isolated from feces and the throat."], answer: 3 },
+
+    { question: "<span style='color: darkred;'>March 2021 - Question 92</span> Which of the following sentences is correct about hepatitis B?", options: ["Hepatitis genome is a complete circular ds DNA.", "Hepatitis genome is partially circular ds DNA.", "Different type of virus particles contain DNA.", "Virus replicates in cytoplasm."], answer: 1 },
+
+    { question: "<span style='color: darkred;'>March 2021 - Question 93</span> Which of the following sentences is correct about Zona?", options: ["The virus is transmitted via the respiratory system.", "Patients are able to transmit varicella zoster.", "PCR method is not a sensitive technique for the detection of the viruses.", "Motor neurons are infected."], answer: 0 },
+
+    { question: "<span style='color: darkred;'>March 2021 - Question 94</span> Which of the following is true about Herpesviridae family?", options: ["The genome is a circular ds DNA.", "The virus envelope is attached to capsid.", "The DNA polymerase is a structural protein.", "The genome has repeated sequences."], answer: 3 },
+    
+    { question: "<span style='color: darkred;'>June 2021 - Question 90</span> Negri Inclusion body is pathognomonic of which viral disease?", options: ["Rabies", "Herpes", "Hepatitis A", "Measles"], answer: 0 },
+
+    { question: "<span style='color: darkred;'>June 2021 - Question 91</span> Which of the following virus families contains RNA genome and causing human cancer?", options: ["Polyomaviridae", "Herpesviridae", "Papillomaviridae", "Retroviridae"], answer: 3 },
+
+    { question: "<span style='color: darkred;'>June 2021 - Question 92</span> Which disease can be caused by Human T-lymphotropic virus (HTLV)?", options: ["Multiple Sclerosis", "Tropical Spastic Paraparesis (TSP)", "Skin cancer", "Wart"], answer: 1 },
+
+    { question: "<span style='color: darkred;'>June 2021 - Question 93</span> The etiology of hand, foot and mouth disease is .......... virus?", options: ["Polio", "Parecho", "Coxsackie A", "Rhino"], answer: 2 },
+
+    { question: "<span style='color: darkred;'>June 2021 - Question 94</span> Which of the following human vaccine is live attenuated virus?", options: ["Measles", "Hepatitis B", "Papilloma", "Rabies"], answer: 0 },
+    
+    { question: "<span style='color: darkred;'>September 2021 - Question 90</span> Which of the following family viruses has Peplomer in its structure?", options: ["Polio", "Parvo", "Delta", "Influenza"], answer: 3 },
+    
+    { question: "<span style='color: darkred;'>September 2021 - Question 91</span> Which of the following viruses has RNA dependent RNA polymerase in its structure?", options: ["Measles", "Rubella", "Hepatitis D", "Polio"], answer: 0 },
+    
+    { question: "<span style='color: darkred;'>September 2021 - Question 92</span> Which of the following statements is true about inclusion bodies?", options: ["Only are situated in the nucleus.", "Only have affinity to the basic dye.", "Larger than the virus particle.", "Only are situated in the cytoplasm."], answer: 2 },
+    
+    { question: "<span style='color: darkred;'>September 2021 - Question 93</span> Which of the following nucleoside analogues is used for HBV treatment?", options: ["Saquinavir", "Oseltamivir", "Lamivudine", "Ganciclovir"], answer: 2 },
+    
+    { question: "<span style='color: darkred;'>September 2021 - Question 94</span> Which type of adenovirus causes diarrhea?", options: ["37", "41", "7", "22"], answer: 1 },
+    
+    { question: "<span style='color: darkred;'>November 2021 - Question 90</span> Which of the following viruses is sensitive to ether?", options: ["Adeno", "Polio", "Papilloma", "Corona"], answer: 0 },
+
+    { question: "<span style='color: darkred;'>November 2021 - Question 91</span> Which of the following viruses is associated with progressive multifocal leukoencephalopathy (PML)?", options: ["Measles", "JC", "Rubella", "Adeno"], answer: 1 },
+
+    { question: "<span style='color: darkred;'>November 2021 - Question 92</span> Which of the following drugs is a viral polymerase inhibitor?", options: ["Acyclovir", "Ritonavir", "Amantadine", "Oseltamivir"], answer: 0 },
+
+    { question: "<span style='color: darkred;'>November 2021 - Question 93</span> Which of the following best describes the SARS-CoV-2 viruses?", options: ["Non-enveloped viruses with a non-infectious genome.", "Enveloped viruses with a non-infectious genome.", "Enveloped viruses with an infectious genome.", "Non-enveloped viruses with an infectious genome."], answer: 2 },
+
+    { question: "<span style='color: darkred;'>November 2021 - Question 94</span> Which of the following markers indicates immunity to Hepatitis B virus (HBV)?", options: ["Anti-HBs", "Anti-HBc", "Anti-HBe", "Anti-HBx"], answer: 0 },
+    
+    { question: "<span style='color: darkred;'>March 2022 - Question 90</span> Which of the following definitions for a patient with chronic hepatitis B is correct?", options: ["Patient’s HBs Ag test is positive for at least 6 months", "Patient’s HBs Ag test is positive for at least 3 months", "Patient’s HBs Ag test is positive for at least one month", "Patient’s anti-HBs Ag antibodies test is positive"], answer: 0 },
+
+    { question: "<span style='color: darkred;'>March 2022 - Question 91</span> Among various 'Inclusion Bodies', which one is the characteristic of Rabies disease?", options: ["Negri Bodies", "Cowdry Bodies", "Owel eye Bodies", "Molluscum Bodies"], answer: 0 },
+
+    { question: "<span style='color: darkred;'>March 2022 - Question 92</span> Among the following papilloma viruses, which ones are classified as High Risk?", options: ["6 & 11", "16 & 18", "6 & 16", "31 & 11"], answer: 1 },
+
+    { question: "<span style='color: darkred;'>March 2022 - Question 93</span> To which of the following families do the JC and BK viruses belong?", options: ["Polyomaviridae", "Adenoviridae", "Coronaviridae", "Parvoviridae"], answer: 0 },
+
+    { question: "<span style='color: darkred;'>March 2022 - Question 94</span> In which families of the viruses below does Genetic Reassortment occur?", options: ["Adenoviridae", "Orthomyxoviridae", "Coronaviridae", "Hepadnaviridae"], answer: 1 },
+    
+    { question: "<span style='color: darkred;'>August 2022 - Question 90</span> Which of the following statements is correct about Herpesviridae family?", options: ["The genome is a circular dsDNA.", "Penetration of virus to the cell occurs through endocytosis.", "Replication of the genome occurs in the nucleus.", "The virus does not use the cellular RNA Polymerase II."], answer: 2 },
+
+    { question: "<span style='color: darkred;'>August 2022 - Question 91</span> Which of the following antivirals is a nucleoside analogue?", options: ["Valacyclovir", "Oseltamivir", "Maraviroc", "Saquinavir"], answer: 0 },
+
+    { question: "<span style='color: darkred;'>August 2022 - Question 92</span> The result of the serologic test of a person was only HBs-Ab positive. The interpretation of the test is ……… .", options: ["past HBV infection", "incubation period of HBV", "immunization with an HBV vaccine", "chronic infection by HBV"], answer: 2 },
+
+    { question: "<span style='color: darkred;'>August 2022 - Question 93</span> Which of the following statements is correct about rabies?", options: ["Cattles are not susceptible to rabies.", "All human vaccines are inactivated vaccines.", "Rabies has different serotypes.", "The incubation period of rabies is fixed and is about 1-2 weeks."], answer: 1 },
+
+    { question: "<span style='color: darkred;'>August 2022 - Question 94</span> Which virus is associated with human cancer?", options: ["Adeno", "Molluscum Contagiosum", "B.K.", "EBV"], answer: 3 },
+    
+    { question: "<span style='color: darkred;'>August 2023 - Question 90</span> Which of the following viruses is the cause of nephropathy?", options: ["JC", "BK", "Coxsacki A", "SV42"], answer: 1 },
+
+    { question: "<span style='color: darkred;'>August 2023 - Question 91</span> Which of the following viruses is transmitted by mosquitoes?", options: ["Crimean-Congo hemorrhagic fever (CCHF)", "Norwalk", "Hanta", "Dengue fever"], answer: 3 },
+
+    { question: "<span style='color: darkred;'>August 2023 - Question 92</span> Which of the following viruses has genetic variations?", options: ["Measles", "Rubella", "Influenza", "Rabies"], answer: 2 },
+
+    { question: "<span style='color: darkred;'>August 2023 - Question 93</span> Which of the following components of viruses are inactivated by ultraviolet rays?", options: ["Proteins", "Glycoproteins", "Lipids", "DNA"], answer: 3 },
+
+    { question: "<span style='color: darkred;'>August 2023 - Question 94</span> Croup is caused by...", options: ["Measles", "Rabies", "Mumps", "Parainfluenza"], answer: 3 },
+    
+    { question: "<span style='color: darkred;'>August 2024 - Question 86</span> Which of the following HBV seromarkers is associated with a high risk of transmission?", options: ["HBcAg", "HBeAg", "HBsAg", "HBcAb"], answer: 1 },
+
+    { question: "<span style='color: darkred;'>August 2024 - Question 87</span> Which protein interaction mediates the HIV attachment to the target cell?", options: ["gp41-CD21", "gp41-CD155", "gp120-CD4", "gp120-CD8"], answer: 2 },
+
+    { question: "<span style='color: darkred;'>August 2024 - Question 88</span> Which types of HPV are considered as high risk for cervical cancer?", options: ["6-18", "11-16", "6-16", "16-18"], answer: 3 },
+
+    { question: "<span style='color: darkred;'>August 2024 - Question 89</span> Which of the following is NOT an Arbovirus?", options: ["Rotavirus", "Dengue fever virus", "West Nile virus", "CCHF"], answer: 0 },
+
+    { question: "<span style='color: darkred;'>August 2024 - Question 90</span> What is the mechanism of oseltamivir function?", options: ["M2 protein inhibitor", "Viral polymerase inhibitor", "Neuraminidase inhibitor", "Inhibition of viral protein synthesis"], answer: 2 }
+
+];
+
+
+
+let originalQuizData = []; // متغير لتخزين النسخة الأصلية من البيانات
+let originalCategories = []; // لتخزين الفئات الأصلية
+let categoryFilterSelected = []; // الفئات المختارة للتصفية
+
+const quizForm = document.getElementById('quiz-form');
+const resultElement = document.getElementById('result');
+const scrollButton = document.getElementById('scroll-button');
+let scrollState = 0;
+let lastAnsweredIndex = -1; // متغير لتتبع آخر سؤال تم الإجابة عليه
+
+function extractCategoryFromQuestion(questionHTML) {
+    const div = document.createElement('div');
+    div.innerHTML = questionHTML;
+    const span = div.querySelector('span[style*="darkred"]');
+    if (span) {
+        let text = span.textContent.trim();
+        const questionIndex = text.toLowerCase().indexOf('question');
+        if (questionIndex !== -1) {
+            text = text.substring(0, questionIndex).trim();
+            text = text.replace(/\-\s*$/, '').trim();
+        }
+        return text;
+    }
+    return '';
+}
+
+function initOriginalCategories() {
+    const cats = originalQuizData.map(q => extractCategoryFromQuestion(q.question)).filter(c => c);
+    originalCategories = [...new Set(cats)];
+}
+
+function loadQuiz() {
+    const fragment = document.createDocumentFragment();
+    quizData.forEach((data, index) => {
+        const questionContainer = document.createElement('div');
+        questionContainer.classList.add('question-container');
+        questionContainer.id = `question-container-${index}`;
+
+        const questionDiv = document.createElement('div');
+        questionDiv.classList.add('question');
+        questionDiv.id = `question-${index}`;
+
+        questionDiv.innerHTML = `<span class="question-number">${index + 1}.</span> ${data.question}`;
+        questionContainer.appendChild(questionDiv);
+
+        const optionsContainer = document.createElement('div');
+        optionsContainer.classList.add('options-container');
+        optionsContainer.id = `options-container-${index}`;
+
+        data.options.forEach((option, optionIndex) => {
+            const optionDiv = document.createElement('div');
+            optionDiv.classList.add('option');
+            optionDiv.dataset.index = index;
+            optionDiv.dataset.optionIndex = optionIndex;
+
+            const radioInput = document.createElement('input');
+            radioInput.type = 'radio';
+            radioInput.id = `question-${index}-option-${optionIndex}`;
+            radioInput.name = `question-${index}`;
+            radioInput.value = optionIndex;
+            optionDiv.appendChild(radioInput);
+
+            const optionLabel = document.createElement('label');
+            optionLabel.textContent = option;
+            optionDiv.appendChild(optionLabel);
+
+            optionsContainer.appendChild(optionDiv);
+        });
+
+        questionContainer.appendChild(optionsContainer);
+
+        // إضافة الأزرار
+        const showAnswerButton = document.createElement('button');
+        showAnswerButton.type = 'button';
+        showAnswerButton.textContent = 'Show Answer';
+        showAnswerButton.classList.add('show-answer-button');
+        showAnswerButton.dataset.index = index;
+
+        showAnswerButton.addEventListener('click', () => {
+            showIndividualAnswer(index);
+        });
+
+        const shuffleOptionsButton = document.createElement('button');
+        shuffleOptionsButton.type = 'button';
+        shuffleOptionsButton.textContent = 'Shuffle Options';
+        shuffleOptionsButton.classList.add('shuffle-options-button');
+        shuffleOptionsButton.dataset.index = index;
+
+        shuffleOptionsButton.addEventListener('click', () => {
+            shuffleOptionsForQuestion(index);
+        });
+
+        const clearButton = document.createElement('button');
+        clearButton.type = 'button';
+        clearButton.textContent = 'Clear';
+        clearButton.classList.add('clear-button');
+        clearButton.dataset.index = index;
+
+        clearButton.addEventListener('click', () => {
+            clearIndividualQuestion(index);
+        });
+
+        const buttonContainer = document.createElement('div');
+        buttonContainer.appendChild(showAnswerButton);
+        buttonContainer.appendChild(shuffleOptionsButton);
+        buttonContainer.appendChild(clearButton);
+
+        questionContainer.appendChild(buttonContainer);
+
+        fragment.appendChild(questionContainer);
+    });
+
+    quizForm.innerHTML = '';
+    quizForm.appendChild(fragment);
+
+    document.getElementById('total-questions').textContent = quizData.length;
+}
+
+function storeOriginalQuizData() {
+    originalQuizData = JSON.parse(JSON.stringify(quizData));
+}
+
+// إضافة مستمع الحدث للنقر على الخيارات
+quizForm.addEventListener('click', (event) => {
+    const target = event.target;
+    if (target.matches('.option, .option *')) {
+        let optionDiv = target.closest('.option');
+        const radioInput = optionDiv.querySelector('input[type="radio"]');
+        if (!radioInput.checked) {
+            radioInput.checked = true;
+        }
+        const index = parseInt(radioInput.name.split('-')[1]);
+        scrollState = 0;
+        lastAnsweredIndex = index; 
+        updateScrollButtonIcon();
+    }
+});
+
+function handleScrollButton() {
+    if (lastAnsweredIndex === -1) {
+        if (scrollState === 0 || scrollState === 2) {
+            window.scrollTo({
+                top: document.body.scrollHeight,
+                behavior: 'smooth'
+            });
+            scrollState = 3;
+        } else if (scrollState === 3) {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+            scrollState = 2;
+        }
+    } else {
+        if (scrollState === 0) {
+            document.getElementById(`question-${lastAnsweredIndex}`).scrollIntoView({ behavior: 'smooth' });
+            scrollState = 1;
+        } else if (scrollState === 1) {
+            window.scrollTo({
+                top: document.body.scrollHeight,
+                behavior: 'smooth'
+            });
+            scrollState = 2;
+        } else if (scrollState === 2) {
+            document.getElementById(`question-${lastAnsweredIndex}`).scrollIntoView({ behavior: 'smooth' });
+            scrollState = 3;
+        } else if (scrollState === 3) {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+            scrollState = 1;
+        }
+    }
+    updateScrollButtonIcon();
+}
+
+function updateScrollButtonIcon() {
+    if (lastAnsweredIndex === -1) {
+        if (scrollState === 0 || scrollState === 2) {
+            scrollButton.textContent = '↓';
+        } else if (scrollState === 3) {
+            scrollButton.textContent = '↑';
+        }
+    } else {
+        if (scrollState === 0) {
+            scrollButton.textContent = '⇄';
+        } else if (scrollState === 1) {
+            scrollButton.textContent = '↓';
+        } else if (scrollState === 2) {
+            scrollButton.textContent = '⇄';
+        } else if (scrollState === 3) {
+            scrollButton.textContent = '↑';
+        }
+    }
+}
+
+function shuffleOptionsForQuestion(index) {
+    const data = quizData[index];
+    const optionsContainer = document.getElementById(`options-container-${index}`);
+    const selectedInput = optionsContainer.querySelector('input:checked');
+    const selectedOptionIndex = selectedInput ? parseInt(selectedInput.value) : null;
+
+    const currentOptions = data.options.map((option, i) => ({ option, index: i }));
+    const shuffledOptions = shuffleArray(currentOptions);
+
+    data.options = shuffledOptions.map(o => o.option);
+    data.answer = shuffledOptions.findIndex(o => o.index === data.answer);
+
+    const fragment = document.createDocumentFragment();
+
+    data.options.forEach((option, optionIndex) => {
+        const optionDiv = document.createElement('div');
+        optionDiv.classList.add('option');
+        optionDiv.dataset.index = index;
+        optionDiv.dataset.optionIndex = optionIndex;
+
+        const radioInput = document.createElement('input');
+        radioInput.type = 'radio';
+        radioInput.id = `question-${index}-option-${optionIndex}`;
+        radioInput.name = `question-${index}`;
+        radioInput.value = optionIndex;
+
+        if (optionIndex === selectedOptionIndex) {
+            radioInput.checked = true;
+        }
+
+        optionDiv.appendChild(radioInput);
+
+        const optionLabel = document.createElement('label');
+        optionLabel.textContent = option;
+        optionDiv.appendChild(optionLabel);
+
+        fragment.appendChild(optionDiv);
+    });
+
+    optionsContainer.innerHTML = '';
+    optionsContainer.appendChild(fragment);
+
+    optionsContainer.querySelectorAll('.option').forEach(optionDiv => {
+        optionDiv.classList.remove('correct', 'wrong', 'correct-answer', 'unanswered');
+    });
+}
+
+function shuffleAllOptions() {
+    quizData.forEach((_, index) => {
+        shuffleOptionsForQuestion(index);
+    });
+}
+
+function showIndividualAnswer(index) {
+    const selectedOption = document.querySelector(`input[name="question-${index}"]:checked`);
+    const options = document.querySelectorAll(`#options-container-${index} .option`);
+
+    options.forEach(optionDiv => {
+        optionDiv.classList.remove('correct', 'wrong', 'correct-answer', 'unanswered');
+    });
+
+    requestAnimationFrame(() => {
+        options.forEach(optionDiv => {
+            const input = optionDiv.querySelector('input');
+            const optionIndex = parseInt(input.value);
+
+            if (optionIndex === quizData[index].answer) {
+                optionDiv.classList.add('correct-answer');
+            }
+
+            if (selectedOption) {
+                if (optionIndex === parseInt(selectedOption.value)) {
+                    if (optionIndex === quizData[index].answer) {
+                        optionDiv.classList.add('correct');
+                    } else {
+                        optionDiv.classList.add('wrong');
+                    }
+                }
+            } else {
+                optionDiv.classList.add('unanswered');
+            }
+        });
+    });
+}
+
+function clearIndividualQuestion(index) {
+    const options = document.querySelectorAll(`#options-container-${index} .option`);
+    options.forEach(optionDiv => {
+        optionDiv.classList.remove('correct', 'wrong', 'correct-answer', 'unanswered');
+        const input = optionDiv.querySelector('input');
+        input.checked = false;
+    });
+}
+
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+function shuffleQuestions() {
+    const visibleIndexes = getVisibleQuestionIndexes();
+    let visibleQuestions = visibleIndexes.map(i => quizData[i]);
+    visibleQuestions = shuffleArray(visibleQuestions);
+
+    for (let v = 0; v < visibleIndexes.length; v++) {
+        quizData[visibleIndexes[v]] = visibleQuestions[v];
+    }
+
+    loadQuiz();
+    applyAllFilters();
+    scrollState = 0;
+    lastAnsweredIndex = -1; 
+    updateScrollButtonIcon();
+}
+
+function showResult() {
+    let score = 0;
+    let unanswered = 0;
+
+    requestAnimationFrame(() => {
+        const visibleIndexes = getVisibleQuestionIndexes();
+        visibleIndexes.forEach(index => {
+            const data = quizData[index];
+            const selectedOption = document.querySelector(`input[name="question-${index}"]:checked`);
+            const options = document.querySelectorAll(`#options-container-${index} .option`);
+
+            options.forEach(optionDiv => {
+                optionDiv.classList.remove('correct', 'wrong', 'correct-answer', 'unanswered');
+            });
+
+            options.forEach(optionDiv => {
+                const input = optionDiv.querySelector('input');
+                const optionIndex = parseInt(input.value);
+
+                if (optionIndex === data.answer) {
+                    optionDiv.classList.add('correct-answer');
+                }
+            });
+
+            if (selectedOption) {
+                const selectedValue = parseInt(selectedOption.value);
+                if (selectedValue === data.answer) {
+                    score++;
+                    selectedOption.parentNode.classList.add('correct');
+                } else {
+                    selectedOption.parentNode.classList.add('wrong');
+                }
+            } else {
+                unanswered++;
+                options.forEach(optionDiv => {
+                    optionDiv.classList.add('unanswered');
+                });
+            }
+        });
+
+        const wrongAnswers = visibleIndexes.length - score - unanswered;
+
+        resultElement.innerHTML = `
+            <p>Your score is ${score} out of ${visibleIndexes.length}.</p>
+            <p>Correct Answers: ${score}</p>
+            <p>Wrong Answers: ${wrongAnswers}</p>
+            <p>Unanswered Questions: ${unanswered}</p>
+        `;
+
+        addFilterButtons();
+    });
+}
+
+function addFilterButtons() {
+    const oldContainer = document.getElementById('filter-container');
+    if (oldContainer) oldContainer.remove();
+
+    const filterContainer = document.createElement('div');
+    filterContainer.id = 'filter-container';
+
+    const showCorrectButton = document.createElement('button');
+    showCorrectButton.textContent = 'Show Correct Answers';
+    showCorrectButton.classList.add('filter-button', 'correct');
+    showCorrectButton.addEventListener('click', () => {
+        currentCorrectnessFilter = 'correct';
+        applyAllFilters();
+    });
+
+    const showWrongButton = document.createElement('button');
+    showWrongButton.textContent = 'Show Wrong Answers';
+    showWrongButton.classList.add('filter-button', 'wrong');
+    showWrongButton.addEventListener('click', () => {
+        currentCorrectnessFilter = 'wrong';
+        applyAllFilters();
+    });
+
+    const showUnansweredButton = document.createElement('button');
+    showUnansweredButton.textContent = 'Show Unanswered Questions';
+    showUnansweredButton.classList.add('filter-button', 'unanswered');
+    showUnansweredButton.addEventListener('click', () => {
+        currentCorrectnessFilter = 'unanswered';
+        applyAllFilters();
+    });
+
+    const showAllButton = document.createElement('button');
+    showAllButton.textContent = 'Show All Questions';
+    showAllButton.classList.add('filter-button', 'all');
+    showAllButton.addEventListener('click', () => {
+        currentCorrectnessFilter = 'all';
+        applyAllFilters();
+    });
+
+    filterContainer.appendChild(showCorrectButton);
+    filterContainer.appendChild(showWrongButton);
+    filterContainer.appendChild(showUnansweredButton);
+    filterContainer.appendChild(showAllButton);
+
+    resultElement.appendChild(filterContainer);
+}
+
+let currentCorrectnessFilter = 'all';
+
+function applyAllFilters() {
+    const selectedOptions = categoryFilterSelected || [];
+    quizData.forEach((data, index) => {
+        const questionContainer = document.getElementById(`question-container-${index}`);
+        const category = extractCategoryFromQuestion(data.question);
+        if (selectedOptions.length === 0 || selectedOptions.includes(category)) {
+            questionContainer.style.display = 'block';
+        } else {
+            questionContainer.style.display = 'none';
+        }
+    });
+
+    filterQuestionsCorrectness();
+    renumberVisibleQuestions();
+    const visibleCount = getVisibleQuestionIndexes().length;
+    document.getElementById('total-questions').textContent = visibleCount;
+}
+
+function filterQuestionsCorrectness() {
+    const visibleIndexes = getVisibleQuestionIndexesByCategory();
+    visibleIndexes.forEach(index => {
+        const questionContainer = document.getElementById(`question-container-${index}`);
+
+        let shouldDisplay = false;
+        const selectedOption = document.querySelector(`input[name="question-${index}"]:checked`);
+        const data = quizData[index];
+
+        if (currentCorrectnessFilter === 'correct') {
+            if (selectedOption && parseInt(selectedOption.value) === data.answer) {
+                shouldDisplay = true;
+            }
+        } else if (currentCorrectnessFilter === 'wrong') {
+            if (selectedOption && parseInt(selectedOption.value) !== data.answer) {
+                shouldDisplay = true;
+            }
+        } else if (currentCorrectnessFilter === 'unanswered') {
+            if (!selectedOption) {
+                shouldDisplay = true;
+            }
+        } else {
+            shouldDisplay = true;
+        }
+
+        questionContainer.style.display = shouldDisplay ? 'block' : 'none';
+    });
+}
+
+function renumberVisibleQuestions() {
+    const visibleIndexes = getVisibleQuestionIndexes();
+    visibleIndexes.forEach((index, i) => {
+        const questionNumberSpan = document.querySelector(`#question-container-${index} .question-number`);
+        if (questionNumberSpan) {
+            questionNumberSpan.textContent = (i + 1) + ".";
+        }
+    });
+}
+
+function getVisibleQuestionIndexes() {
+    const containers = document.querySelectorAll('.question-container');
+    const visibleIndexes = [];
+    containers.forEach((c, i) => {
+        if (c.style.display !== 'none') {
+            visibleIndexes.push(i);
+        }
+    });
+    return visibleIndexes;
+}
+
+function getVisibleQuestionIndexesByCategory() {
+    const selectedOptions = categoryFilterSelected || [];
+    const indexes = [];
+    quizData.forEach((data, i) => {
+        const category = extractCategoryFromQuestion(data.question);
+        if (selectedOptions.length === 0 || selectedOptions.includes(category)) {
+            indexes.push(i);
+        }
+    });
+    return indexes;
+}
+
+function openResetModal() {
+    document.getElementById('reset-modal').style.display = 'block';
+}
+
+function closeResetModal() {
+    document.getElementById('reset-modal').style.display = 'none';
+}
+
+function confirmResetQuiz() {
+    quizData = JSON.parse(JSON.stringify(originalQuizData));
+    loadQuiz();
+    requestAnimationFrame(() => {
+        resultElement.innerHTML = '';
+        scrollState = 0;
+        lastAnsweredIndex = -1; 
+        updateScrollButtonIcon();
+        categoryFilterSelected = [];
+        currentCorrectnessFilter = 'all';
+        applyAllFilters();
+        closeResetModal();
+    });
+}
+
+function resetQuiz() {
+    openResetModal();
+}
+
+function openJumpModal() {
+    document.getElementById('jump-modal').style.display = 'block';
+    document.getElementById('jump-input').focus();
+}
+
+function closeJumpModal() {
+    document.getElementById('jump-modal').style.display = 'none';
+    clearSearchResults();
+}
+
+function displaySearchResults(results) {
+    const searchResultsContainer = document.getElementById('search-results');
+    searchResultsContainer.innerHTML = '';
+
+    if (results.length === 0) {
+        const noResults = document.createElement('p');
+        noResults.textContent = 'No matching questions found.';
+        searchResultsContainer.appendChild(noResults);
+    } else {
+        const resultsList = document.createElement('ul');
+
+        results.forEach(result => {
+            const listItem = document.createElement('li');
+
+            const resultButton = document.createElement('button');
+            resultButton.innerHTML = `Question ${result.index + 1}: ${result.questionSnippet}`;
+            resultButton.addEventListener('click', () => {
+                document.getElementById(`question-${result.index}`).scrollIntoView({ behavior: 'smooth' });
+                closeJumpModal();
+            });
+
+            listItem.appendChild(resultButton);
+            resultsList.appendChild(listItem);
+        });
+
+        searchResultsContainer.appendChild(resultsList);
+    }
+}
+
+function clearSearchResults() {
+    const searchResultsContainer = document.getElementById('search-results');
+    searchResultsContainer.innerHTML = '';
+}
+
+function stripHTML(html) {
+    let div = document.createElement('div');
+    div.innerHTML = html;
+    return div.textContent || div.innerText || '';
+}
+
+function highlightTerm(text, term) {
+    const regex = new RegExp(`(${term})`, 'gi');
+    return text.replace(regex, '<mark>$1</mark>');
+}
+
+function jumpToQuestion() {
+    const input = document.getElementById('jump-input').value.trim();
+    if (input === '') return;
+
+    if (!isNaN(input)) {
+        const num = parseInt(input);
+        const idx = num - 1;
+        const visibleIndexes = getVisibleQuestionIndexes();
+        if (visibleIndexes.includes(idx)) {
+            document.getElementById(`question-${idx}`).scrollIntoView({ behavior: 'smooth' });
+            closeJumpModal();
+        } else {
+            const results = [];
+            // Maybe it's hidden due to filters
+            if (idx >= 0 && idx < quizData.length) {
+                results.push({
+                    index: idx,
+                    questionSnippet: `Question ${num}`
+                });
+            }
+            displaySearchResults(results);
+        }
+    } else {
+        const visibleIndexes = getVisibleQuestionIndexes();
+        const results = [];
+        for (let j = 0; j < visibleIndexes.length; j++) {
+            const i = visibleIndexes[j];
+            const data = quizData[i];
+            const questionText = stripHTML(data.question);
+            if (questionText.toLowerCase().includes(input.toLowerCase())) {
+                results.push({
+                    index: i,
+                    questionSnippet: highlightTerm(questionText, input),
+                });
+            }
+        }
+        displaySearchResults(results);
+    }
+}
+
+function openCategoryModal() {
+    document.getElementById('category-modal').style.display = 'block';
+    updateCategoryFilter();
+}
+
+function closeCategoryModal() {
+    document.getElementById('category-modal').style.display = 'none';
+}
+
+function updateCategoryFilter() {
+    const categorySelect = document.getElementById('category-filter');
+    categorySelect.innerHTML = '';
+    originalCategories.forEach(cat => {
+        const option = document.createElement('option');
+        option.value = cat;
+        option.textContent = cat;
+        if (categoryFilterSelected.includes(cat)) {
+            option.selected = true;
+        }
+        categorySelect.appendChild(option);
+    });
+}
+
+document.getElementById('select-all-categories-btn').addEventListener('click', () => {
+    const categorySelect = document.getElementById('category-filter');
+    const allSelected = Array.from(categorySelect.options).every(option => option.selected);
+    for (let i = 0; i < categorySelect.options.length; i++) {
+        categorySelect.options[i].selected = !allSelected;
+    }
+});
+
+function applyCategoryFilter() {
+    const categorySelect = document.getElementById('category-filter');
+    categoryFilterSelected = Array.from(categorySelect.selectedOptions).map(o => o.value);
+    closeCategoryModal();
+    applyAllFilters();
+}
+
+// بدء التحميل
+storeOriginalQuizData();
+initOriginalCategories();
+loadQuiz();
+updateScrollButtonIcon();
+categoryFilterSelected = [];
+applyAllFilters();
+    </script>
+</body>
+</html>
